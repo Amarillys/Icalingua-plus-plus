@@ -177,11 +177,13 @@ export default {
         getRemark(uin) {
             if (uin == -1) return ''
             const target = this.getTargetInfo(uin)
+            if (!target) return 'null'
             return target.remark || target.name || target.group_remark || target.group_name
         },
         getName(uin) {
             if (uin == -1) return ''
             const target = this.getTargetInfo(uin)
+            if (!target) return 'null'
             return target.nick || target.name || target.group_name
         },
     },
