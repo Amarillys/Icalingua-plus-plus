@@ -32,6 +32,14 @@
                         @click="selectedChatGroup = 'private'"
                     />
                     <SideBarIcon
+                        icon="el-icon-chat-square"
+                        name="Others"
+                        v-if="showNoCategoriedChats"
+                        :selected="selectedChatGroup === 'uncategorized'"
+                        :redPoint="chatGroupsUnreadCount['uncategorized']"
+                        @click="selectedChatGroup = 'uncategorized'"
+                    />
+                    <SideBarIcon
                         v-for="chatGroup in chatGroups"
                         :key="chatGroup.name"
                         icon="el-icon-folder"
@@ -348,6 +356,8 @@ export default {
             chooseFileTypeShown: false,
             tempFile: null,
             tempFileName: '',
+            uncategorizedRooms: [],
+            showNoCategoriedChats: false
         }
     },
     async created() {
@@ -357,6 +367,7 @@ export default {
         const settings = await ipc.getSettings()
         this.linkify = settings.linkify
         this.disableChatGroups = settings.disableChatGroups
+        this.showNoCategoriedChats = settings.showNoCategoriedChats
         this.disableChatGroupsRedPoint = settings.disableChatGroupsRedPoint
         this.roomPanelAvatarOnly = settings.roomPanelAvatarOnly
         this.roomPanelWidth = settings.roomPanelWidth
@@ -466,6 +477,10 @@ export default {
             this.disableChatGroups = p
             this.selectedChatGroup = 'chats'
         })
+
+        ipcRenderer.on('setShowNoCategoriedChats', (_, p) => {
+            this.showNoCategoriedChats = p
+        })
         ipcRenderer.on('setDisableChatGroupsRedPointSeeting', (_, p) => {
             this.disableChatGroupsRedPoint = p
             this.chatGroupsUnreadCount = {}
@@ -479,6 +494,7 @@ export default {
                         groups.forEach(g => {
                             this.chatGroupsUnreadCount[g.name] = true
                         })
+                        this.chatGroupsUnreadCount['uncategorized'] = this.uncategorizedRooms.filter(room => room.roomId === e.roomId) != null
                     }
                 }
             })
@@ -1199,6 +1215,45 @@ Chromium ${process.versions.chrome}` : ''
             }
         },
         rooms(n) {
+        selectedChatGroup(n, o) {
+            if (n === 'chats') {
+                this.visibleRooms = []
+            } else if (n === 'uncategorized') {
+                this.visibleRooms = this.uncategorizedRooms
+            } else {
+                console.log('selectedChatGroup', n)
+                const group = this.chatGroups.find(g => g.name === n)
+                this.visibleRooms = this.rooms.filter(e => {
+                    if (!group) return false
+                    return group.rooms.includes(e.roomId)
+                })
+            }
+        },
+        rooms(n) {
+            if (this.selectedChatGroup === 'chats') {
+                this.visibleRooms = []
+            }
+
+            // update uncategorizedRooms
+            const rooms = _.clone(this.rooms)
+            let roomMap = {}
+            rooms.forEach(r => roomMap[r.roomId] = true)
+            this.chatGroups.forEach(group => {
+                group.rooms.forEach(r => roomMap[r] = false)
+            })
+            if (rooms.length > 0) {
+                this.uncategorizedRooms = rooms.filter(room => roomMap[room.roomId])
+            }
+            if (this.selectedChatGroup === 'uncategorized') {
+                this.visibleRooms = this.uncategorizedRooms
+            } else {
+                const group = this.chatGroups.find(g => g.name === this.selectedChatGroup)
+                this.visibleRooms = n.filter(e => {
+                    if (!group) return false
+                    return group.rooms.includes(e.roomId)
+                })
+            }
+
             if (this.disableChatGroups || this.disableChatGroupsRedPoint) return
             this.chatGroupsUnreadCount = {}
             n.forEach(e => {
@@ -1211,6 +1266,7 @@ Chromium ${process.versions.chrome}` : ''
                         groups.forEach(g => {
                             this.chatGroupsUnreadCount[g.name] = true
                         })
+                        this.chatGroupsUnreadCount['uncategorized'] = this.uncategorizedRooms.find(room => room.roomId === e.roomId) != null
                     }
                 }
             })
@@ -1228,6 +1284,7 @@ Chromium ${process.versions.chrome}` : ''
                         groups.forEach(g => {
                             this.chatGroupsUnreadCount[g.name] = true
                         })
+                        this.chatGroupsUnreadCount['uncategorized'] = this.uncategorizedRooms.filter(room => room.roomId === e.roomId) != null
                     }
                 }
             })

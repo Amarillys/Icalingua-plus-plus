@@ -184,6 +184,10 @@ export default {
     setDisableChatGroupsSeeting(a: boolean) {
         sendToMainWindow('setDisableChatGroupsSeeting', a)
     },
+
+    setShowNoCategoriedChats(a: boolean) {
+        sendToMainWindow('setShowNoCategoriedChats', a)
+    },
     setDisableChatGroupsRedPointSeeting(a: boolean) {
         sendToMainWindow('setDisableChatGroupsRedPointSeeting', a)
     },

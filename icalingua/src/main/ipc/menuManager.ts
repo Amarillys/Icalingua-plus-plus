@@ -1354,6 +1354,16 @@ export const updateAppMenu = async () => {
                         },
                     },
                     {
+                        label: '启用单独分组，用来显示未分组聊天',
+                        type: 'checkbox',
+                        checked: getConfig().showNoCategoriedChats,
+                        click: (menuItem) => {
+                            getConfig().showNoCategoriedChats = menuItem.checked
+                            saveConfigFile()
+                            ui.setShowNoCategoriedChats(menuItem.checked)
+                        },
+                    },
+                    {
                         label: '关闭分组会话红点',
                         type: 'checkbox',
                         checked: getConfig().disableChatGroupsRedPoint,

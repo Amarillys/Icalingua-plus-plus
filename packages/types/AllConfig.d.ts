@@ -35,6 +35,7 @@ type AllConfig = {
     hideChatImageByDefault: boolean
     hideChatVideoByDefault: boolean
     disableChatGroups: boolean
+    showNoCategoriedChats: boolean
     singleImageMode: boolean
     disableChatGroupsRedPoint: boolean
     localImageViewerByDefault: boolean
